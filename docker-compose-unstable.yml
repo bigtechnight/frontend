@@ -1,0 +1,16 @@
+services:
+    frontend-unstable:
+        container_name: bigtechnight-frontend-unstable
+        build:
+            context: ./
+            dockerfile: Dockerfile
+        restart: on-failure
+        environment:
+            - VITE_API_PATH=${VITE_API_PATH}
+        networks:
+            - frontend_unstable_network
+
+networks:
+    frontend_unstable_network:
+        name: bigtechnight-unstable
+        external: true

@@ -1,0 +1,12 @@
+export const CHAR_SPACE = '\u0020';
+export const CHAR_NARROW_SPACE = '\u202F';
+export const CHAR_RUBLE = '¤';
+export const CHAR_PERCENT = '\u0025';
+export const CHAR_CHEVRON_LEFT = '<';
+export const CHAR_CHEVRON_RIGHT = '>';
+export const CHAR_PLUS = '+';
+export const CHAR_TILDA = '~';
+export const CHAR_ARROW_RIGHT = '→';
+export const CHAR_UP_ARROW = '↑';
+export const CHAR_ASTERISK = '*';
+export const CHAR_GREATER = '>';

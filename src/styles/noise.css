@@ -1,0 +1,27 @@
+.noise:after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: url(/images/noise.png) left top / 20% 20% repeat;
+    pointer-events: none;
+    opacity: 0.3;
+    width: 100%;
+    height: 100%;
+}
+
+.noise-bg {
+    position: relative;
+    background-color: #000;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.noise-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url(/images/noise-bg.gif) left top / 15% 15% repeat;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 1;
+}

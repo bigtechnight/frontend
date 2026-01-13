@@ -1,0 +1,98 @@
+default:
+    image: node:20-alpine
+
+stages:
+    - deps
+    - checks
+    - deploy_unstable
+    - deploy_production
+
+variables:
+    FQDN: $RSYNC_USER@$RSYNC_HOST
+    PNPM_HOME: .pnpm-store
+
+cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+        - node_modules/
+        - .pnpm-store/
+        - .npm/
+
+.deps-install:
+    before_script:
+        - corepack enable
+        - corepack prepare pnpm@latest --activate
+        - pnpm config set store-dir $PNPM_HOME
+        - npm run dependency:install
+
+.deploy-ssh-setup:
+    before_script:
+        - apk add --no-cache rsync openssh
+        - mkdir -p ~/.ssh
+        - echo "$RSYNC_KEY" > ~/.ssh/id_rsa
+        - chmod 600 ~/.ssh/id_rsa
+        - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+
+eslint:
+    stage: checks
+    tags:
+        - runner-docker
+    extends: .deps-install
+    script:
+        - npm run ci:lint
+    only:
+        - merge_requests
+
+prettier:
+    stage: checks
+    tags:
+        - runner-docker
+    extends: .deps-install
+    script:
+        - npm run ci:prettier
+    only:
+        - merge_requests
+
+typecheck:
+    stage: checks
+    tags:
+        - runner-docker
+    extends: .deps-install
+    script:
+        - npm run ci:typecheck
+    only:
+        - merge_requests
+
+deploy_unstable:
+    stage: deploy_unstable
+    image: node:20-alpine
+    tags:
+        - runner-docker
+    extends:
+        - .deploy-ssh-setup
+    script:
+        - ssh -p 22 $FQDN "mkdir -p ~/bigtechnight-unstable/frontend"
+        - rsync -e "ssh -p 22" -raz --delete ./ $FQDN:~/bigtechnight-unstable/frontend
+        - ssh -p 22 $FQDN "printf 'VITE_API_PATH=\"$VITE_API_PATH\"\n' >> ~/bigtechnight-unstable/frontend/.env;"
+        - ssh -p 22 $FQDN "cd ~/bigtechnight-unstable/frontend; bash -s" < start-unstable.sh
+    environment:
+        name: unstable
+    only:
+        - unstable
+
+deploy_production:
+    stage: deploy_production
+    image: node:20-alpine
+    tags:
+        - runner-docker
+    extends:
+        - .deploy-ssh-setup
+    script:
+        - ssh -p 22 $FQDN "mkdir -p ~/bigtechnight-production/frontend"
+        - rsync -e "ssh -p 22" -raz --delete ./ $FQDN:~/bigtechnight-production/frontend
+        - ssh -p 22 $FQDN "printf 'VITE_API_PATH=\"$VITE_API_PATH\"\n' >> ~/bigtechnight-production/frontend/.env;"
+        - ssh -p 22 $FQDN "cd ~/bigtechnight-production/frontend; bash -s" < start.sh
+    environment:
+        name: production
+    only:
+        - main

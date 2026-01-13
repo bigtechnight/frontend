@@ -1,0 +1,16 @@
+services:
+    frontend-production:
+        container_name: bigtechnight-frontend-production
+        build:
+            context: ./
+            dockerfile: Dockerfile
+        restart: on-failure
+        environment:
+            - VITE_API_PATH=${VITE_API_PATH}
+        networks:
+            - frontend_production_network
+
+networks:
+    frontend_production_network:
+        name: bigtechnight-production
+        external: true
